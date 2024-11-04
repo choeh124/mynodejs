@@ -1,0 +1,318 @@
+sidebars booklist, pagination
+params:{
+                    query:query,
+                    page:page,
+                    size: 10
+                }
+//BookList.jsx
+import './BookList.css';
+
+export default function BookList({books}) {
+    return (
+        <div className="book-list">
+            {books.map((book) =>{
+                return (
+                    <div key={book.isbn} className='book-item'>
+                        <img src={book.thumbnail} alt={`${book.title}의 표지`} />
+                        <div className='book-info'>
+                            <h3>{book.title}</h3>
+                            <p>{book.authors.join(', ')}</p>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+//Pagination.jsx
+import './Pagination.css';
+
+export default function Pagination({page, setPage, searchBooks, isEnd}){
+    const handlePrev = ()=>{
+        setPage(page-1);
+        searchBooks();
+    }
+
+    const handleNext = () =>{
+        setPage(page+1);
+        searchBooks();
+    }
+
+    return (
+        <div className='pagination'>
+            <button onClick={handlePrev} disabled={page===1}>이전</button>
+            <span>{page}</span>
+            <button onClick={handleNext} disabled={isEnd}>다음</button>
+        </div>
+    )
+}
+//SearchArea.jsx
+import { useState } from 'react';
+import './SearchArea.css';
+import axios from 'axios';
+import SearchBar from './SearchBar';
+import BookList from './BookList';
+import Pagination from './Pagination';
+
+export default function SearchArea() {
+    const [query, setQuery] = useState('한강');
+    const [page, setPage] = useState(1);
+    const [books, setBooks] = useState([]);
+    const [isEnd, setIsEnd] = useState(true);
+
+    const findBooks = async() =>{
+        const response = await axios.get(`https://dapi.kakao.com/v3/search/book?query=${query}&page=${page}&size=5`,
+            {
+                headers: {
+                    Authorization: 'KakaoAK 1779cfdb06157d209af150254e9fe2ae',
+                },
+            }
+        );
+        const data = response.data;
+        setBooks(data.documents);
+        setIsEnd(data.meta.is_end);
+        console.log(books);
+        console.log("is_end==>",data.meta.is_end);
+    }
+
+    return (
+        <div className='search-area'>
+            <SearchBar query={query} setQuery={setQuery} 
+            searchBooks={()=>{
+                setPage(1);
+                findBooks();
+            }}></SearchBar>
+            <BookList books={books}></BookList>
+            <Pagination page={page} setPage={setPage} searchBooks={findBooks} isEnd={isEnd}></Pagination>
+        </div>
+    );
+}
+
+//SearchBar.jsx
+import './SearchBar.css';
+
+export default function SearchBar({query, setQuery, searchBooks}) {
+    //const {query, setQuery, searchBooks} =props;
+
+    const handleSearch = (e) =>{
+        e.preventDefault();
+        searchBooks();
+    }
+
+    return (
+        <form className="search-bar" onSubmit={handleSearch}>
+            <input type="text" value={query} onChange={(e)=>setQuery(e.target.value)}
+            placeholder='검색어를 입력하시오'></input>
+            <button type="submit" >검색</button>
+        </form>
+    )
+
+}
+
+//BookDetail.jsx
+import './BookDetail.css';
+
+export default function BookDetail({book}) {
+    if(!book) {
+        return <div className='book-detail'>책을 선택하세요.</div>
+    }else{
+        return (
+            <div>
+                <h1>{book.title}</h1>
+            </div>
+        )
+    }
+}
+
+//BookFinder.jsx
+import Header from "./Header";
+import Footer from "./Footer";
+import SearchArea from "./sidebar/SearchArea";
+import './BookFinder.css';
+import BookDetail from "./BookDetail";
+
+export default function BookFinder() {
+    return (
+        <div className="App">
+            <Header></Header>
+            <div className="main-content">
+                <SearchArea></SearchArea>
+                <BookDetail></BookDetail>
+            </div>
+            <Footer></Footer>
+        </div>
+    )
+}
+
+//
+import './Footer.css';
+
+export default function Footer() {
+    return(
+        <footer><h3>&copy;2024 책 검색 앱 CEH</h3></footer>
+    )
+}
+
+//
+import './Header.css';
+
+export default function Header() {
+    return (
+        <header>
+            <h1>Book Finder</h1>
+        </header>
+    );
+}
+////////////////////////////////////////선택하기
+//BookDetail
+import './BookDetail.css';
+
+export default function BookDetail({book}) {
+    if(!book) {
+        return <div className='book-detail'>책을 선택하세요.</div>
+    }
+
+    return (
+        <div className='book-detail'>
+            <h2>{book.title}</h2>
+            <p><strong>저자:</strong>{book.authors.join(', ')}</p>
+            <p><strong>출판사:</strong>{book.publisher}</p>
+            <p><strong>출판일:</strong>{book.datetime.split('T')[0]}</p>
+            <p><strong>ISBN:</strong>{book.isbn}</p>
+            <p><strong>책 내용:</strong>{book.contents}</p>
+            <p><strong>상세내용:</strong><a href={book.url}>상세정보</a></p>
+            <p><img src={book.thumbnail} alt={book.title}/></p>
+        </div>
+    )
+    
+}
+
+//BookFinder
+import Header from "./Header";
+import Footer from "./Footer";
+import SearchArea from "./sidebar/SearchArea";
+import './BookFinder.css';
+import BookDetail from "./BookDetail";
+import { useState } from "react";
+
+export default function BookFinder() {
+    const [selected, setSelected] = useState(null);
+
+    return (
+        <div className="App">
+            <Header></Header>
+            <div className="main-content">
+                <SearchArea setSelected={setSelected}></SearchArea>
+                <BookDetail book={selected}></BookDetail>
+            </div>
+            <Footer></Footer>
+        </div>
+    )
+}
+
+//SearchArea
+import { useState } from 'react';
+import './SearchArea.css';
+import axios from 'axios';
+import SearchBar from './SearchBar';
+import BookList from './BookList';
+import Pagination from './Pagination';
+
+export default function SearchArea({setSelected}) {
+    const [query, setQuery] = useState('한강');
+    const [page, setPage] = useState(1);
+    const [books, setBooks] = useState([]);
+    const [isEnd, setIsEnd] = useState(true);
+
+    const findBooks = async() =>{
+        const response = await axios.get(`https://dapi.kakao.com/v3/search/book?query=${query}&page=${page}&size=5`,
+            {
+                headers: {
+                    Authorization: 'KakaoAK 1779cfdb06157d209af150254e9fe2ae',
+                },
+            }
+        );
+        const data = response.data;
+        setBooks(data.documents);
+        setIsEnd(data.meta.is_end);
+        console.log(books);
+        console.log("is_end==>",data.meta.is_end);
+    }
+
+    return (
+        <div className='search-area'>
+            <SearchBar query={query} setQuery={setQuery} 
+            searchBooks={()=>{
+                setPage(1);
+                findBooks();
+            }}></SearchBar>
+            <BookList books={books} setSelected={setSelected}></BookList>
+            <Pagination page={page} setPage={setPage} searchBooks={findBooks} isEnd={isEnd}></Pagination>
+        </div>
+    );
+}
+
+//BookList
+import './BookList.css';
+
+export default function BookList({books, setSelected}) {
+    return (
+        <div className="book-list">
+            {books.map((book) =>{
+                return (
+                    <div key={book.isbn} className='book-item' onClick={()=>setSelected(book)}>
+                        <img src={book.thumbnail} alt={`${book.title}의 표지`} />
+                        <div className='book-info'>
+                            <h3>{book.title}</h3>
+                            <p>{book.authors.join(', ')}</p>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
+//Pagination
+import './Pagination.css';
+
+export default function Pagination({page, setPage, searchBooks, isEnd}){
+    const handlePrev = ()=>{
+        setPage(page-1);
+        searchBooks();
+    }
+
+    const handleNext = () =>{
+        setPage(page+1);
+        searchBooks();
+    }
+
+    return (
+        <div className='pagination'>
+            <button onClick={handlePrev} disabled={page===1}>이전</button>
+            <span>{page}</span>
+            <button onClick={handleNext} disabled={isEnd}>다음</button>
+        </div>
+    )
+}
+
+//SearchBar
+import './SearchBar.css';
+
+export default function SearchBar({query, setQuery, searchBooks}) {
+    //const {query, setQuery, searchBooks} =props;
+
+    const handleSearch = (e) =>{
+        e.preventDefault();
+        searchBooks();
+    }
+
+    return (
+        <form className="search-bar" onSubmit={handleSearch}>
+            <input type="text" value={query} onChange={(e)=>setQuery(e.target.value)}
+            placeholder='검색어를 입력하시오'></input>
+            <button type="submit" >검색</button>
+        </form>
+    )
+
+}
