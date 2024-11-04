@@ -39,15 +39,28 @@ const storage = multer.diskStorage({
 const upload = multer({storage:storage}); //added 2024.11.04
 //upload.single("file") 첨부파일을 생성할 수 있는 함수
 
-app.post("/posts", upload.single("file"), async(req, res)=>{ //added 2024.11.04
+// app.post("/posts", upload.single("file"), async(req, res)=>{ //added 2024.11.04
+//     const {title, content, author} = req.body;
+//     let filename = req.file ? req.file.filename : null; //added 2024.11.04
+//     filename=`/downloads/${filename}`; //downloads/test-2024110410101.png
+//     const post = await models.Post.create({
+//         title: title,
+//         content: content,
+//         author: author,
+//         filename: filename, //added 2024.11.04
+//     });
+//     res.status(201).json({post:post});
+// });
+
+app.post("/posts",  async(req, res)=>{ //added 2024.11.04
     const {title, content, author} = req.body;
-    let filename = req.file ? req.file.filename : null; //added 2024.11.04
-    filename=`/downloads/${filename}`; //downloads/test-2024110410101.png
+    //let filename = req.file ? req.file.filename : null; //added 2024.11.04
+    //filename=`/downloads/${filename}`; //downloads/test-2024110410101.png
     const post = await models.Post.create({
         title: title,
         content: content,
         author: author,
-        filename: filename, //added 2024.11.04
+        //filename: filename, //added 2024.11.04
     });
     res.status(201).json({post:post});
 });
