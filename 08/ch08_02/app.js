@@ -1,4 +1,7 @@
 //orm 방식, 씨퀄라이져
+//씨퀄라이저 마이그레이션
+//테이블 변경시 프로그램으로 테이블 변경(데이터 안 날라감), 물리적 변경만 됨
+//논리적 변경(모델변경)은 models > post.js에서 수작업
 const express = require('express');
 const path = require('path');
 const models = require('./models'); //models/index.js  added 2024.11.04
